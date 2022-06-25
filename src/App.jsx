@@ -8,11 +8,11 @@ function Box() {
 
   /* update loop */
   useFrame((state)=> {
-    ref.current.rotation.y = Math.sin(state.clock.elapsedTime)
+    ref.current.position.z = THREE.MathUtils.lerp(ref.current.position.z, clicked ? 1 : 0, 0.1)
   })
 
   return (
-    <mesh ref={ref} position={[0, 0, clicked ? 1 : 0]} onClick={() => setClicked(!clicked) }>
+    <mesh ref={ref} onClick={() => setClicked(!clicked) }>
       <boxGeometry/>
       <meshBasicMaterial color='orange' />
     </mesh>

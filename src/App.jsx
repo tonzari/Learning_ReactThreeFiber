@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { Suspense, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, Environment } from "@react-three/drei"
+import { EffectComposer, DepthOfField } from "@react-three/postprocessing"
 
 function Book({z}) {
   const ref = useRef()
@@ -9,7 +10,6 @@ function Book({z}) {
 
   const { viewport, camera } = useThree()
   const { width, height } = viewport.getCurrentViewport(camera, [0, 0, z])
-
 
   const [data] = useState(
     {
@@ -25,17 +25,17 @@ function Book({z}) {
 
   useFrame((state)=> {
     ref.current.rotation.set(data.rX + 0.001, data.rY += 0.001, data.rZ + 0.001)
-    ref.current.position.set(data.x * width, (data.y += 0.01), z)
-    if (data.y > height * 2) {
+    ref.current.position.set(data.x * width * 2, (data.y += 0.01) * 2, z * 2)
+    if (data.y > height ) {
       data.y = -height * 2
     }
   })
 
   return (
     <group ref={ref} position={[0,-10,-50]} rotation={[0,0,-1.6]}>
-    <mesh geometry={nodes.book_a_open_0.geometry} material={materials.book_a} />
-    <mesh geometry={nodes.book_a_open_1.geometry} material={materials.book_a_pages} />
-  </group>
+      <mesh geometry={nodes.book_a_open_0.geometry} material={materials.book_a} />
+      <mesh geometry={nodes.book_a_open_1.geometry} material={materials.book_a_pages} />
+    </group>
   )
 }
 
@@ -46,14 +46,18 @@ function Book({z}) {
 
 
 
-export default function App({ count = 100 }) {
+export default function App({ count = 200, depth = 100 }) {
   return (
-    <Canvas>
-      <ambientLight intensity={0.2} />
-      <spotLight position={[10,10,10]} intensity={0.5} />
+    <Canvas gl={{alpha: false}} camera={{ near: 0.01, far: 500, fov: 30 }}>
+      <color attach="background" args={["#2f90eb"]} />
       <Suspense fallback={null}>
         <Environment preset="sunset"/>
-      { Array.from({ length: count }, (_, i) => (<Book key={i} z={-i} />))}
+        { Array.from({ length: count }, (_, i) => (
+          <Book key={i} z={-(i/count) * depth - 50 } />
+          ))}
+        <EffectComposer>
+          <DepthOfField target={[0,0, 200]} focalLength={0.8} bokehScale={3} height={700}/>
+        </EffectComposer>
       </Suspense>
     </Canvas>
   )

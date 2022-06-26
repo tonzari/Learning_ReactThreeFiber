@@ -1,6 +1,7 @@
 import * as THREE from 'three'
-import { useRef, useState } from 'react'
+import { Suspense, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useGLTF, Environment } from "@react-three/drei"
 
 function Box({z}) {
   const ref = useRef()
@@ -27,15 +28,26 @@ function Box({z}) {
   return (
     <mesh ref={ref}>
       <boxGeometry/>
-      <meshBasicMaterial color='orange' />
+      <meshBasicMaterial map='/Book/textures/book_a_baseColor.png' color='orange' />
     </mesh>
   )
+}
+
+function Book() {
+  const { scene } = useGLTF('/Book/scene.gltf')
+  return <primitive position={[-10,-10,-50]} object={ scene } />
 }
 
 export default function App({ count = 100 }) {
   return (
     <Canvas>
-      { Array.from({ length: count }, (_, i) => (<Box key={i} z={-i} />))}
+      <ambientLight intensity={0.2} />
+      <spotLight position={[10,10,10]} intensity={0.5} />
+      <Suspense fallback={null}>
+        <Book />
+        <Environment preset="sunset"/>
+      </Suspense>
+      {/* { Array.from({ length: count }, (_, i) => (<Box key={i} z={-i} />))} */}
     </Canvas>
   )
 }
